@@ -28,7 +28,7 @@ const CONTENT_TYPES = new Map(Object.entries({
     '.map': 'application/json; charset=utf-8',
 }));
 
-export function contentTypeFor(filePath) {
+function contentTypeFor(filePath) {
     return CONTENT_TYPES.get(path.extname(filePath).toLowerCase()) || 'application/octet-stream';
 }
 

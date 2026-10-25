@@ -148,7 +148,7 @@ async function handleSubmit(req, res) {
     }
 
     try {
-        const result = await submitScore(validation.value, expectedSeed, timestamp());
+        const result = await submitScore(validation.value, timestamp());
         sendJson(res, 200, result);
     } catch (err) {
         console.error('[server] submit failed:', err);

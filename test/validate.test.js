@@ -6,7 +6,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { validateSubmission, GUID_RE, NAME_RE } from '../server/validate.js';
+import { validateSubmission, GUID_RE, NAME_RE, MIN_TIME_MS, MAX_TIME_MS } from '../server/validate.js';
 
 const SEED = 120261025;
 
@@ -74,7 +74,7 @@ test('rejects a non-integer seed', () => {
 });
 
 test('rejects out-of-range times', () => {
-    for (const timeMs of [0, 999, 1_800_001, -5, 12.5, '1000', null]) {
+    for (const timeMs of [0, MIN_TIME_MS - 1, MAX_TIME_MS + 1, -5, 12.5, '1000', null]) {
         const result = validateSubmission({ ...valid, timeMs }, SEED);
         assert.equal(result.ok, false, `expected timeMs ${timeMs} to be rejected`);
         assert.equal(result.reason, 'time out of range');
@@ -82,8 +82,8 @@ test('rejects out-of-range times', () => {
 });
 
 test('accepts the boundary times', () => {
-    assert.equal(validateSubmission({ ...valid, timeMs: 1_000 }, SEED).ok, true);
-    assert.equal(validateSubmission({ ...valid, timeMs: 1_800_000 }, SEED).ok, true);
+    assert.equal(validateSubmission({ ...valid, timeMs: MIN_TIME_MS }, SEED).ok, true);
+    assert.equal(validateSubmission({ ...valid, timeMs: MAX_TIME_MS }, SEED).ok, true);
 });
 
 test('normalises an unknown slot hint to an empty string', () => {

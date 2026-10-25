@@ -5,7 +5,7 @@
  * (write to a temp file, then rename) and serialised through a promise chain
  * so concurrent submissions can never interleave and corrupt a day's file.
  */
-import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rename, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { config } from './config.js';
@@ -56,7 +56,7 @@ async function saveDay(day, entries) {
  * Delete day files older than the retention window.
  * The current day is never removed.
  */
-export async function pruneStale(referenceDay = dayKey()) {
+async function pruneStale(referenceDay = dayKey()) {
     const cutoff = new Date(`${referenceDay.slice(0, 4)}-${referenceDay.slice(4, 6)}-${referenceDay.slice(6, 8)}T00:00:00Z`);
     cutoff.setUTCDate(cutoff.getUTCDate() - config.retentionDays);
 
@@ -73,7 +73,6 @@ export async function pruneStale(referenceDay = dayKey()) {
         const stamp = new Date(`${name.slice(0, 4)}-${name.slice(4, 6)}-${name.slice(6, 8)}T00:00:00Z`);
         if (Number.isNaN(stamp.getTime()) || stamp >= cutoff) return;
         try {
-            const { unlink } = await import('node:fs/promises');
             await unlink(path.join(config.leaderboardDir, name));
         } catch (err) {
             if (err.code !== 'ENOENT') {
@@ -92,7 +91,7 @@ export function sortEntries(entries) {
  * Rank a player's entry. Returns null when the entry is not found.
  * Rank is 1-based within the day's full entry list.
  */
-export function rankFor(entries, guid, slot) {
+function rankFor(entries, guid, slot) {
     const sorted = sortEntries(entries);
     const index = sorted.findIndex((e) => e.guid === guid && e.slot === slot);
     if (index === -1) return null;
@@ -100,7 +99,7 @@ export function rankFor(entries, guid, slot) {
 }
 
 /** Top 10 entries for display. */
-export function topTen(entries) {
+function topTen(entries) {
     return sortEntries(entries).slice(0, 10).map((e, i) => ({
         rank: i + 1,
         name: e.name,
@@ -120,7 +119,7 @@ export function topTen(entries) {
  *
  * @returns {Promise<{ok: boolean, accepted: boolean, reason?: string, rank?: number|null, total?: number, slot?: string, timeMs?: number}>}
  */
-export async function submitScore({ guid, name, timeMs }, expectedSeed, timestamp) {
+export async function submitScore({ guid, name, timeMs }, timestamp) {
     return withLock(async () => {
         const today = dayKey();
         await pruneStale(today);
