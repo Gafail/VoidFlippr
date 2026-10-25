@@ -1,0 +1,116 @@
+/* Home-screen leaderboard: top-10 list + slot badges + "me" highlight. */
+
+.leaderboard {
+    margin-top: 33px;
+    padding: 22px;
+    background: var(--surface);
+    border-radius: 18px;
+    box-shadow: 0 9px 26px var(--shadow);
+    text-align: left;
+}
+
+.leaderboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 13px;
+}
+
+.leaderboard-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.leaderboard-header .lb-date {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-family: monospace;
+}
+
+.leaderboard-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.lb-row {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    gap: 11px;
+    align-items: center;
+    padding: 8px 11px;
+    border-radius: 9px;
+    background: var(--bg-color);
+    font-size: 0.95rem;
+}
+
+.lb-row.me {
+    background: rgba(74, 144, 217, 0.15);
+    border: 1px solid var(--accent);
+}
+
+.lb-rank {
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-align: center;
+    font-family: monospace;
+}
+
+.lb-row.me .lb-rank {
+    color: var(--accent);
+}
+
+.lb-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lb-name .lb-guid {
+    color: var(--text-secondary);
+    font-family: monospace;
+    font-size: 0.8rem;
+    margin-left: 6px;
+    font-weight: 400;
+}
+
+.lb-time {
+    font-family: monospace;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.lb-slot {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 2px 7px;
+    border-radius: 6px;
+    margin-left: 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    vertical-align: middle;
+}
+
+.lb-slot.first {
+    background: rgba(102, 126, 234, 0.18);
+    color: #667eea;
+}
+
+.lb-slot.best {
+    background: rgba(52, 199, 89, 0.18);
+    color: var(--success);
+}
+
+.leaderboard-empty {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 13px 0;
+    font-size: 0.9rem;
+}

@@ -1,0 +1,45 @@
+# VoidFlippr - systemd unit for the Node.js leaderboard server.
+# Place at /etc/systemd/system/voidflippr.service, then:
+#     sudo systemctl daemon-reload
+#     sudo systemctl enable --now voidflippr
+#
+# The Node process binds to 127.0.0.1:9865 - only accessible via the nginx
+# reverse proxy. Nothing here is exposed directly to the network.
+#
+# Requires Node.js 18+ installed on the host.
+
+[Unit]
+Description=VoidFlippr daily-puzzle leaderboard server (Node.js)
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=voidflippr
+Group=voidflippr
+WorkingDirectory=/opt/voidflippr
+ExecStart=/usr/bin/node /opt/voidflippr/server.js
+Environment=HOST=127.0.0.1
+Environment=PORT=9865
+Environment=NODE_ENV=production
+Restart=on-failure
+RestartSec=3
+
+# Graceful shutdown so in-flight requests are not dropped.
+KillSignal=SIGTERM
+TimeoutStopSec=10
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/voidflippr
+
+# Logs
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=voidflippr
+
+[Install]
+WantedBy=multi-user.target

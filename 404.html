@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="5;url=/">
+    <title>404 — VoidFlippr</title>
+    <style>
+        :root {
+            --bg: #f5f5f7;
+            --text: #1a1a2e;
+            --sub: #666;
+            --accent: #4a90d9;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #1a1a2e;
+                --text: #ffffff;
+                --sub: #aaa;
+                --accent: #6aa9e8;
+            }
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 22px;
+        }
+        .wrap { max-width: 440px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            width: 144px;
+            height: 144px;
+            margin: 0 auto 22px;
+        }
+        .tile {
+            aspect-ratio: 1;
+            border-radius: 9px;
+            background: var(--text);
+            opacity: 0.15;
+            animation: fade 2s ease-in-out infinite;
+        }
+        .tile:nth-child(2) { animation-delay: 0.15s; }
+        .tile:nth-child(3) { animation-delay: 0.30s; }
+        .tile:nth-child(5) { animation-delay: 0.45s; }
+        .tile:nth-child(7) { animation-delay: 0.60s; }
+        .tile:nth-child(8) { animation-delay: 0.75s; }
+        @keyframes fade {
+            0%, 100% { opacity: 0.15; }
+            50% { opacity: 1; }
+        }
+        h1 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 11px;
+        }
+        p {
+            color: var(--sub);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 22px;
+        }
+        a, .btn {
+            display: inline-block;
+            padding: 14px 28px;
+            background: var(--accent);
+            color: white;
+            text-decoration: none;
+            border-radius: 11px;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .countdown {
+            color: var(--sub);
+            font-size: 0.85rem;
+            margin-top: 17px;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="grid" aria-hidden="true">
+            <div class="tile"></div><div class="tile"></div><div class="tile"></div>
+            <div class="tile"></div><div class="tile"></div><div class="tile"></div>
+            <div class="tile"></div><div class="tile"></div><div class="tile"></div>
+        </div>
+        <h1>404</h1>
+        <p>That tile isn't on this board. Let's get you back home.</p>
+        <a href="/">Back to home</a>
+        <div class="countdown">Auto-redirecting in 5 seconds…</div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoidFlippr</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/theme.css">
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/screens.css">
+    <link rel="stylesheet" href="/css/board.css">
+    <link rel="stylesheet" href="/css/modals.css">
+    <link rel="stylesheet" href="/css/tutorial.css">
+    <link rel="stylesheet" href="/css/identity.css">
+    <link rel="stylesheet" href="/css/leaderboard.css">
+    <link rel="stylesheet" href="/css/submit.css">
+    <link rel="stylesheet" href="/css/toast.css">
+</head>
+<body>
+    <div class="header-actions">
+        <button class="icon-btn" onclick="showSettings()" title="Settings">⚙️</button>
+        <button class="icon-btn" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+    </div>
+
+    <div class="container">
+        <div id="homeScreen" class="screen active">
+            <div class="home-content">
+                <h1>VoidFlippr</h1>
+                <p class="subtitle">Turn all tiles the same color to win</p>
+                <div class="menu-buttons">
+                    <button class="btn btn-primary" onclick="showDifficultyMenu()">Start New</button>
+                    <button class="btn btn-secondary daily-btn" id="dailyBtn" onclick="startDaily()">Daily Puzzle</button>
+                    <button class="btn btn-secondary" onclick="showSettings()">Settings</button>
+                </div>
+                <div class="leaderboard" id="leaderboard">
+                    <div class="leaderboard-header">
+                        <h3>Daily Leaderboard</h3>
+                        <span class="lb-date" id="lbDate">—</span>
+                    </div>
+                    <div id="leaderboardBody">
+                        <div class="leaderboard-empty">Loading…</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="difficultyScreen" class="screen">
+            <div class="menu-content">
+                <h2>Select Difficulty</h2>
+                <div class="seed-input-row">
+                    <input type="number" id="puzzleSeed" class="seed-input" placeholder="Random seed">
+                </div>
+                <div class="difficulty-menu">
+                    <button class="difficulty-btn" onclick="startGame(10)">
+                        Easy (10)
+                        <div class="best-time" id="bestEasy"></div>
+                    </button>
+                    <button class="difficulty-btn" onclick="startGame(20)">
+                        Medium (20)
+                        <div class="best-time" id="bestMedium"></div>
+                    </button>
+                    <button class="difficulty-btn" onclick="startGame(30)">
+                        Hard (30)
+                        <div class="best-time" id="bestHard"></div>
+                    </button>
+                </div>
+                <div class="custom-section">
+                    <h3>Or enter custom (1-100)</h3>
+                    <div class="custom-input-row">
+                        <input type="number" id="customFlips" class="custom-input" min="1" max="100" placeholder="1-100">
+                        <button class="btn btn-primary" onclick="startCustom()">Go</button>
+                    </div>
+                </div>
+                <button class="back-btn" onclick="showHomeScreen()">← Back</button>
+            </div>
+        </div>
+
+        <div id="settingsScreen" class="screen">
+            <div class="settings-content">
+                <h2>Settings</h2>
+                <div class="settings-form">
+                    <div class="color-picker-group">
+                        <span class="color-picker-label">Front Color</span>
+                        <div class="color-picker-wrapper">
+                            <div class="color-preview" id="frontPreview" style="background: var(--tile-front);"></div>
+                            <input type="color" id="frontColor" value="#ffffff" onchange="updateTileColors()">
+                        </div>
+                    </div>
+                    <div class="color-picker-group">
+                        <span class="color-picker-label">Back Color</span>
+                        <div class="color-picker-wrapper">
+                            <div class="color-preview" id="backPreview" style="background: var(--tile-back);"></div>
+                            <input type="color" id="backColor" value="#1a1a2e" onchange="updateTileColors()">
+                        </div>
+                    </div>
+                    <div class="toggle-group">
+                        <span class="toggle-label">Sound Effects</span>
+                        <div class="toggle active" id="soundToggle" onclick="toggleSound()"></div>
+                    </div>
+                    <div class="toggle-group">
+                        <span class="toggle-label">Show Tutorial</span>
+                        <div class="toggle" id="tutorialToggle" onclick="showTutorial()"></div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="resetColors()">Reset Colors</button>
+                </div>
+                <button class="back-btn" onclick="showHomeScreen()">← Back</button>
+            </div>
+        </div>
+
+        <div id="gameScreen" class="screen">
+            <div class="game-content">
+                <div class="game-info">
+                    <span class="seed-display" id="seedDisplay">Seed: 0</span>
+                </div>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-label">Generator</div>
+                        <div class="stat-value" id="optimalMoves">0</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Player</div>
+                        <div class="stat-value highlight" id="playerMoves">0</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Time</div>
+                        <div class="stat-value highlight" id="timer">00:00.00</div>
+                    </div>
+                </div>
+                <div class="board-wrapper">
+                    <div class="board" id="board"></div>
+                </div>
+                <div class="game-controls">
+                    <button class="btn btn-secondary" onclick="restartGame()">Restart</button>
+                    <button class="btn btn-primary" onclick="showDifficultyMenu()">New Puzzle</button>
+                    <button class="btn btn-secondary" onclick="goHome()">Home</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="winModal" class="modal">
+        <div class="modal-content">
+            <h2 id="winTitle">Puzzle Solved!</h2>
+            <div class="modal-stats">
+                <div class="modal-stat">
+                    <div class="modal-stat-label">Time</div>
+                    <div class="modal-stat-value" id="finalTime">00:00.00</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-stat-label">Moves</div>
+                    <div class="modal-stat-value" id="finalMoves">0</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-stat-label">Generator</div>
+                    <div class="modal-stat-value" id="finalOptimal">0</div>
+                </div>
+            </div>
+            <div class="new-record" id="newRecord" style="display: none;">
+                New Personal Best!
+            </div>
+            <div class="submit-section" id="submitSection" style="display: none;">
+                <div class="submit-status" id="submitStatus"></div>
+                <div class="submit-buttons" id="submitButtons"></div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="restartGame()">Play Again</button>
+                <button class="btn btn-secondary" onclick="closeModalAndNew()">New Puzzle</button>
+                <button class="btn btn-secondary" onclick="goHome()">Home</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="tutorialOverlay" class="tutorial-overlay">
+        <div class="tutorial-content">
+            <h2>How to Play</h2>
+            <div class="tutorial-grid" id="tutorialGrid">
+                <div class="tutorial-tile" data-row="0" data-col="0"></div>
+                <div class="tutorial-tile" data-row="0" data-col="1"></div>
+                <div class="tutorial-tile" data-row="0" data-col="2"></div>
+                <div class="tutorial-tile" data-row="1" data-col="0"></div>
+                <div class="tutorial-tile back" data-row="1" data-col="1"></div>
+                <div class="tutorial-tile" data-row="1" data-col="2"></div>
+                <div class="tutorial-tile" data-row="2" data-col="0"></div>
+                <div class="tutorial-tile" data-row="2" data-col="1"></div>
+                <div class="tutorial-tile" data-row="2" data-col="2"></div>
+            </div>
+            <p class="tutorial-text">
+                Tap any tile to flip it and all surrounding tiles. Your goal is to turn all tiles the same color.
+            </p>
+            <div class="tutorial-checkbox">
+                <input type="checkbox" id="dontShowAgain">
+                <span>Don't show again</span>
+            </div>
+            <button class="btn btn-primary" onclick="closeTutorial()">Got It!</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <div id="identityOverlay" class="identity-overlay">
+        <div class="identity-content">
+            <h2>Welcome to VoidFlippr</h2>
+            <p>Pick a display name for the daily leaderboard. Your handle stays on this device.</p>
+            <input type="text" id="identityName" class="identity-input" maxlength="20" placeholder="Your name">
+            <div class="identity-guid">ID: <span id="identityGuid">—</span></div>
+            <button class="btn btn-primary" id="identityConfirmBtn">Continue</button>
+        </div>
+    </div>
+
+    <script type="module" src="/js/main.js"></script>
+</body>
+</html>

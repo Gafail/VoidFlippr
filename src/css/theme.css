@@ -1,0 +1,30 @@
+/* CSS variables — light + dark themes.
+   Keep all colors here; never hard-code in components. */
+
+:root {
+    --bg-color: #f5f5f7;
+    --tile-white: #ffffff;
+    --tile-black: #1a1a2e;
+    --tile-front: var(--tile-white);
+    --tile-back: var(--tile-black);
+    --accent: #4a90d9;
+    --accent-hover: #3a7bc8;
+    --text-primary: #1a1a2e;
+    --text-secondary: #666;
+    --success: #34c759;
+    --shadow: rgba(0, 0, 0, 0.1);
+    --shadow-hover: rgba(0, 0, 0, 0.15);
+    --surface: #ffffff;
+}
+
+.dark-mode {
+    --bg-color: #1a1a2e;
+    --tile-white: #2a2a3e;
+    --tile-black: #e0e0e0;
+    --tile-front: var(--tile-white);
+    --tile-back: var(--tile-black);
+    --text-primary: #ffffff;
+    --text-secondary: #aaa;
+    --shadow: rgba(0, 0, 0, 0.3);
+    --surface: #2a2a3e;
+}

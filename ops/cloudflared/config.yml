@@ -1,0 +1,26 @@
+# VoidFlippr — Cloudflare Tunnel config
+#
+# This file is read by /etc/systemd/system/cloudflared.service.
+# Cert + credentials live in /home/voidflippr/.cloudflared/ (or wherever the
+# `cloudflared tunnel login` + `cloudflared tunnel create voidflippr` flow put
+# them — adjust the paths below to match your environment).
+#
+# To bootstrap a fresh tunnel:
+#   1. cloudflared tunnel login
+#   2. cloudflared tunnel create voidflippr
+#   3. Copy the UUID + credentials path into this file
+#   4. Point your DNS at the tunnel:
+#        cloudflared tunnel route dns voidflippr voidflippr.example.com
+#
+# The tunnel forwards to nginx on 127.0.0.1:8080 (the LAN/internal config).
+# nginx then proxies to the Node server on 127.0.0.1:9865.
+
+tunnel: REPLACE-WITH-YOUR-TUNNEL-UUID
+credentials-file: /etc/cloudflared/REPLACE-WITH-YOUR-TUNNEL-UUID.json
+
+ingress:
+  - hostname: REPLACE.example.com
+    service: http://127.0.0.1:8080
+  - hostname: www.REPLACE.example.com
+    service: http://127.0.0.1:8080
+  - service: http_status:404

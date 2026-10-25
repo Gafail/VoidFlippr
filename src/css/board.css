@@ -1,0 +1,48 @@
+/* Game board grid + tile appearance + flip animation. */
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 6px;
+    padding: 15px;
+    background: var(--surface);
+    border-radius: 18px;
+    box-shadow: 0 9px 26px var(--shadow);
+    width: 100%;
+    aspect-ratio: 1;
+}
+
+.tile {
+    aspect-ratio: 1;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+    border: none;
+    box-shadow: 0 2px 4px var(--shadow);
+}
+
+.tile.front {
+    background: var(--tile-front);
+}
+
+.tile.back {
+    background: var(--tile-back);
+}
+
+.tile:hover {
+    transform: scale(1.05);
+}
+
+.tile:active {
+    transform: scale(0.95);
+}
+
+.tile.pop {
+    animation: pop 0.2s ease;
+}
+
+@keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.85); }
+    100% { transform: scale(1); }
+}

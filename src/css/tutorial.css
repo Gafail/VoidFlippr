@@ -1,0 +1,89 @@
+/* Tutorial overlay + interactive 3x3 demo grid. */
+
+.tutorial-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.tutorial-overlay.active {
+    display: flex;
+}
+
+.tutorial-content {
+    background: var(--surface);
+    padding: 33px;
+    border-radius: 22px;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+}
+
+.tutorial-content h2 {
+    margin-bottom: 22px;
+}
+
+.tutorial-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 22px;
+    max-width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.tutorial-tile {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    background: var(--tile-front);
+    border: 2px solid var(--shadow);
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.tutorial-tile:hover {
+    transform: scale(1.08);
+}
+
+.tutorial-tile:active {
+    transform: scale(0.95);
+}
+
+.tutorial-tile.back {
+    background: var(--tile-back);
+}
+
+.tutorial-text {
+    color: var(--text-secondary);
+    margin-bottom: 22px;
+    line-height: 1.6;
+}
+
+.tutorial-checkbox {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 22px;
+    cursor: pointer;
+}
+
+.tutorial-checkbox input {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.tutorial-checkbox span {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
