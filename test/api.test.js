@@ -85,6 +85,16 @@ test('GET /404.html serves the branded page', async () => {
     assert.match(res.text, /404/);
 });
 
+test('the branded 404 page is reachable even without a built dist/', async () => {
+    // The web root falls back to src/ when dist/ is absent, and 404.html
+    // lives at the project root. It must stay reachable either way.
+    const webRoot = config.webRoot;
+    assert.ok(webRoot, 'expected a resolved web root');
+    const res = await get('/404.html');
+    assert.equal(res.status, 200);
+    assert.match(res.text, /VoidFlippr/);
+});
+
 test('an unknown path returns 404', async () => {
     const res = await get('/definitely-not-a-page');
     assert.equal(res.status, 404);

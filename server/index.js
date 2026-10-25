@@ -109,17 +109,26 @@ async function sendNotFound(req, res) {
  * Serve a static file from the web root.
  *
  * Only files inside the web root are served. The project root is NOT used as a
- * fallback, because that would expose package.json, server source and other
- * non-public files over HTTP.
+ * general fallback, because that would expose package.json, server source and
+ * other non-public files over HTTP. The single exception is the branded 404
+ * page, which lives at the project root and must stay reachable even when
+ * serving straight from src/ without a build.
  */
 async function serveStatic(req, res, urlPath) {
     const filePath = await resolveSafePath(config.webRoot, urlPath);
-    if (!filePath) return false;
+    if (filePath) {
+        // Asset filenames are not content-hashed, so revalidate rather than
+        // cache aggressively - a deploy should be picked up immediately.
+        const cacheControl = filePath.endsWith('.html') ? 'no-cache' : 'public, max-age=300';
+        return sendFile(req, res, filePath, { cacheControl });
+    }
 
-    // Asset filenames are not content-hashed, so revalidate rather than cache
-    // aggressively - a deploy should be picked up immediately.
-    const cacheControl = filePath.endsWith('.html') ? 'no-cache' : 'public, max-age=300';
-    return sendFile(req, res, filePath, { cacheControl });
+    if (urlPath === '/404.html') {
+        const branded = await resolveSafePath(config.root, '/404.html');
+        if (branded) return sendFile(req, res, branded, { cacheControl: 'no-cache' });
+    }
+
+    return false;
 }
 
 async function handleSubmit(req, res) {
