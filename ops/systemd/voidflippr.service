@@ -6,7 +6,7 @@
 # The Node process binds to 127.0.0.1:9865 - only accessible via the nginx
 # reverse proxy. Nothing here is exposed directly to the network.
 #
-# Requires Node.js 18+ installed on the host.
+# Requires Node.js 22.5 or newer.
 
 [Unit]
 Description=VoidFlippr daily-puzzle leaderboard server (Node.js)
@@ -22,6 +22,9 @@ ExecStart=/usr/bin/node /opt/voidflippr/server.js
 Environment=HOST=127.0.0.1
 Environment=PORT=9865
 Environment=NODE_ENV=production
+# The leaderboard database and the identity signing secret live here.
+# Point DATA_DIR at a mounted volume if /opt is not persistent.
+Environment=DATA_DIR=/opt/voidflippr/data
 Restart=on-failure
 RestartSec=3
 

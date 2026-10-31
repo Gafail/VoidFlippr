@@ -4,8 +4,9 @@ node_modules/
 # Build output
 dist/
 
-# Live leaderboard data (one file per day)
-leaderboard/*.json
+# Live leaderboard data (SQLite database, identity secret, JSON fallback)
+data/
+leaderboard/
 
 # Deploy staging tree
 deploy/

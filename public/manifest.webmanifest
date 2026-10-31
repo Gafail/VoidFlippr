@@ -1,0 +1,31 @@
+{
+    "name": "VoidFlippr",
+    "short_name": "VoidFlippr",
+    "description": "A daily Lights Out puzzle. Turn every tile the same colour to win.",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#1a1a2e",
+    "theme_color": "#1a1a2e",
+    "icons": [
+        {
+            "src": "/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/apple-touch-icon.png",
+            "sizes": "180x180",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

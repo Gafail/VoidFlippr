@@ -1,0 +1,6 @@
+# VoidFlippr
+User-agent: *
+Allow: /
+Disallow: /daily-submit
+Disallow: /daily-register
+Disallow: /data/

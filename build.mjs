@@ -118,6 +118,14 @@ async function main() {
         cpSync(notFound, join(DIST, '404.html'));
     }
 
+    // Static assets that are served from the site root: icons, manifest and
+    // robots.txt.
+    const publicDir = join(ROOT, 'public');
+    if (existsSync(publicDir)) {
+        cpSync(publicDir, DIST, { recursive: true, force: true });
+        log('  public/ assets');
+    }
+
     log(`\nBuild complete -> ${DIST}`);
 }
 

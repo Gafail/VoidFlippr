@@ -1,7 +1,8 @@
 /* Game mechanics: board generation, tile flipping, timer, win detection. */
 
 import { state, saveBestTime } from './state.js';
-import { formatElapsed, seededRandom } from './util.js';
+import { formatElapsed } from './util.js';
+import { BOARD_SIZE, DAILY_STEPS, generateBoard, flipTiles } from '../../shared/puzzle.js';
 import { playClickSound, playWinSound } from './audio.js';
 import { showScreen, renderSubmitSection } from './ui.js';
 import { fetchDailyDate, getSeedFromURL } from './daily.js';
@@ -11,37 +12,6 @@ const FLIP_DIRECTIONS = [
     [0, 0], [-1, -1], [-1, 0], [-1, 1],
     [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]
 ];
-
-const BOARD_SIZE = 9;
-
-/** Flip a tile and its 8 neighbours. */
-function flipTiles(board, row, col) {
-    for (const [dr, dc] of FLIP_DIRECTIONS) {
-        const nr = row + dr;
-        const nc = col + dc;
-        if (nr >= 0 && nr < board.length && nc >= 0 && nc < board.length) {
-            board[nr][nc] = !board[nr][nc];
-        }
-    }
-}
-
-/**
- * Build a puzzle by applying N seeded flips to an all-front board.
- * The same seed always produces the same board.
- */
-function generatePuzzle(size, steps, seedValue) {
-    state.seed = seedValue;
-    let s = seedValue;
-    const board = Array(size).fill(null).map(() => Array(size).fill(false));
-
-    for (let i = 0; i < steps; i++) {
-        const r = Math.floor(seededRandom(s++) * size);
-        const c = Math.floor(seededRandom(s++) * size);
-        flipTiles(board, r, c);
-    }
-
-    return { board, seed: seedValue, steps };
-}
 
 function renderBoard() {
     const boardEl = document.getElementById('board');
@@ -155,11 +125,10 @@ export function startGame(steps, dailySeed = null) {
         }
     }
 
-    const result = generatePuzzle(state.gridSize, steps, seedValue);
-    state.board = result.board;
+    state.seed = seedValue;
+    state.board = generateBoard(state.gridSize, steps, seedValue);
     state.initialBoard = JSON.parse(JSON.stringify(state.board));
-    state.seed = result.seed;
-    state.optimalMoves = result.steps;
+    state.optimalMoves = steps;
     state.playerMoves = 0;
     state.gameStarted = false;
 
@@ -185,7 +154,7 @@ export function startGame(steps, dailySeed = null) {
 export async function startDaily() {
     if (!state.dailySeedValue) await fetchDailyDate();
     state.lastSubmissionResult = null;
-    startGame(15, state.dailySeedValue);
+    startGame(DAILY_STEPS, state.dailySeedValue);
 }
 
 export function startCustom() {

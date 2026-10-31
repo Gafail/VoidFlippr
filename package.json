@@ -1,19 +1,21 @@
 {
   "name": "voidflippr",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
   "description": "VoidFlippr - a daily Lights Out puzzle game with a global leaderboard.",
   "type": "module",
   "main": "server/index.js",
+  "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=22.5.0"
   },
   "scripts": {
-    "start": "node server/index.js",
-    "dev": "node --watch server/index.js",
+    "start": "node server.js",
+    "dev": "node --watch server.js",
     "build": "node build.mjs",
     "build:prod": "node build.mjs --minify",
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "icons": "node tools/generate-icons.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0"

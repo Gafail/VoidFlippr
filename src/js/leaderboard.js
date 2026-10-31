@@ -67,9 +67,11 @@ export async function submitDailyScore(slotHint) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 guid: state.playerGuid,
+                token: state.playerToken,
                 name: state.playerName,
                 seed: state.dailySeedValue,
                 timeMs: state.finalElapsedMs,
+                moves: state.playerMoves,
                 slotHint,
             }),
         });

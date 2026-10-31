@@ -37,6 +37,7 @@ export const state = {
     // Identity
     playerName: null,
     playerGuid: null,
+    playerToken: null,
 };
 
 // --- localStorage wrappers ---

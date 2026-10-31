@@ -20,7 +20,7 @@ DEST="${1:-$ROOT_DIR/deploy}"
 mkdir -p "$DEST"
 
 # Top-level runtime files.
-for f in server.js package.json package-lock.json 404.html run.sh build.sh build.mjs README.md; do
+for f in server.js package.json package-lock.json 404.html run.sh build.sh build.mjs README.md LICENSE Dockerfile; do
   if [ -e "$ROOT_DIR/$f" ]; then
     cp -f "$ROOT_DIR/$f" "$DEST/$f"
   fi
@@ -29,6 +29,16 @@ done
 # The server implementation.
 if [ -d "$ROOT_DIR/server" ]; then
   rsync -a "$ROOT_DIR/server/" "$DEST/server/"
+fi
+
+# Shared logic used by both the client and the server.
+if [ -d "$ROOT_DIR/shared" ]; then
+  rsync -a "$ROOT_DIR/shared/" "$DEST/shared/"
+fi
+
+# Static site-root assets: icons, manifest, robots.txt.
+if [ -d "$ROOT_DIR/public" ]; then
+  rsync -a "$ROOT_DIR/public/" "$DEST/public/"
 fi
 
 # Ship src/ so future rebuilds on the server are possible.
@@ -45,10 +55,11 @@ if [ -d "$ROOT_DIR/ops" ]; then
   rsync -a "$ROOT_DIR/ops/" "$DEST/ops/"
 fi
 
-# The leaderboard placeholder only - never the live day files.
-if [ -d "$ROOT_DIR/leaderboard" ]; then
-  mkdir -p "$DEST/leaderboard"
-  rsync -a --exclude='*.json' "$ROOT_DIR/leaderboard/" "$DEST/leaderboard/"
+# The data directory holds the live leaderboard. It is never copied: mount a
+# volume at /data on the host instead, so scores survive a redeploy.
+if [ -d "$DEST/data" ]; then
+  echo "==> Removing live data/ from the deploy tree (use a mounted volume)"
+  rm -rf "$DEST/data"
 fi
 
 # node_modules is never copied: the server has no runtime dependencies.

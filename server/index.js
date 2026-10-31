@@ -4,21 +4,33 @@
  * Responsibilities:
  *   - serve the built game (dist/) or the raw source tree (src/)
  *   - expose the daily puzzle seed
+ *   - issue player identities
  *   - accept and validate score submissions
  *   - serve the top-10 daily leaderboard
  *
- * Runs on any host with Node.js 18+ and no external dependencies.
+ * Runs on any host with Node.js 22+ and no external npm dependencies.
  */
 import http from 'node:http';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
 import { readFile, stat } from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
 
 import { config } from './config.js';
 import { dayKey, seedFor, timestamp } from './daily.js';
-import { leaderboardSnapshot, submitScore } from './leaderboard.js';
+import {
+    closeStorage,
+    initStorage,
+    leaderboardSnapshot,
+    loadDay,
+    sortEntries,
+    storage,
+    submitScore,
+} from './store.js';
 import { resolveSafePath, sendFile } from './static.js';
 import { validateSubmission } from './validate.js';
+import { issueIdentity, validateRegistration, verifyGuidToken } from './identity.js';
+import { consume } from './ratelimit.js';
+import { dailyPuzzle } from '../shared/puzzle.js';
 
 const SECURITY_HEADERS = {
     'X-Content-Type-Options': 'nosniff',
@@ -26,13 +38,36 @@ const SECURITY_HEADERS = {
     'Referrer-Policy': 'strict-origin-when-cross-origin',
 };
 
+/**
+ * CORS headers for a request.
+ *
+ * The game is served from the same origin as the API, so cross-origin access
+ * is denied by default. Set ALLOWED_ORIGINS to permit specific origins.
+ */
+function corsHeaders(req) {
+    const origin = req.headers.origin;
+    if (!origin) return {};
+
+    const allowed = config.allowedOrigins;
+    if (!allowed.includes('*') && !allowed.includes(origin)) {
+        // Do not echo the origin, and do not allow it.
+        return { Vary: 'Origin' };
+    }
+
+    return {
+        'Access-Control-Allow-Origin': allowed.includes('*') ? '*' : origin,
+        'Access-Control-Allow-Methods': 'GET, POST, HEAD, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        Vary: 'Origin',
+    };
+}
+
 function sendJson(res, status, payload, extraHeaders = {}) {
     const body = JSON.stringify(payload);
     res.writeHead(status, {
         'Content-Type': 'application/json; charset=utf-8',
         'Content-Length': Buffer.byteLength(body),
         'Cache-Control': 'no-store',
-        'Access-Control-Allow-Origin': '*',
         ...SECURITY_HEADERS,
         ...extraHeaders,
     });
@@ -73,10 +108,29 @@ function readJsonBody(req) {
     });
 }
 
-/** True when the client asked for a JSON response. */
-function wantsJson(req) {
-    const accept = req.headers.accept || '';
-    return accept.includes('application/json');
+/** The client IP, honouring X-Forwarded-For only when a proxy is trusted. */
+function clientIp(req) {
+    if (config.trustProxy) {
+        const forwarded = req.headers['x-forwarded-for'];
+        if (typeof forwarded === 'string' && forwarded.length > 0) {
+            return forwarded.split(',')[0].trim();
+        }
+    }
+    return req.socket?.remoteAddress || 'unknown';
+}
+
+/**
+ * The minimum number of clicks needed to solve today's board.
+ * Cached per day, because the solver takes a few milliseconds.
+ */
+let puzzleCache = { day: null, minMoves: 0 };
+
+function todaysMinMoves() {
+    const today = dayKey();
+    if (puzzleCache.day === today) return puzzleCache.minMoves;
+    const { minMoves } = dailyPuzzle(seedFor());
+    puzzleCache = { day: today, minMoves };
+    return minMoves;
 }
 
 /** Serve the branded 404 page. */
@@ -123,6 +177,13 @@ async function serveStatic(req, res, urlPath) {
         return sendFile(req, res, filePath, { cacheControl });
     }
 
+    // Site-root assets (icons, manifest, robots.txt) live in public/.
+    const publicPath = await resolveSafePath(config.publicDir, urlPath);
+    if (publicPath) {
+        const cacheControl = publicPath.endsWith('robots.txt') ? 'public, max-age=3600' : 'public, max-age=86400';
+        return sendFile(req, res, publicPath, { cacheControl });
+    }
+
     if (urlPath === '/404.html') {
         const branded = await resolveSafePath(config.root, '/404.html');
         if (branded) return sendFile(req, res, branded, { cacheControl: 'no-cache' });
@@ -140,10 +201,49 @@ async function handleSubmit(req, res) {
         return;
     }
 
+    // Validate the shape before spending any rate limit budget, so malformed
+    // requests are cheap and honest clients are not punished.
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+        sendJson(res, 400, { ok: false, reason: 'invalid body' });
+        return;
+    }
+
+    const guid = typeof body.guid === 'string' ? body.guid : '';
+    const ip = clientIp(req);
+    const windowMs = config.rateLimitWindowSec * 1000;
+
+    // Per-IP limits are generous: many players can share one address behind
+    // NAT or a mobile carrier, so this only stops runaway scripts.
+    const ipLimit = consume(`submit:ip:${ip}`, config.submitLimit, windowMs);
+    if (!ipLimit.allowed) {
+        sendJson(res, 429, { ok: false, reason: 'too many submissions' },
+            { 'Retry-After': String(ipLimit.retryAfterSec) });
+        return;
+    }
+
+    // A single player can only improve their own two slots, so a tight
+    // per-identity limit is safe.
+    if (guid) {
+        const guidLimit = consume(`submit:guid:${guid}`, config.submitGuidLimit, windowMs);
+        if (!guidLimit.allowed) {
+            sendJson(res, 429, { ok: false, reason: 'too many submissions' },
+                { 'Retry-After': String(guidLimit.retryAfterSec) });
+            return;
+        }
+    }
+
+    // Check the shape and format of the payload before touching identity, so
+    // a malformed request gets an honest 400 rather than a misleading 403.
     const expectedSeed = seedFor();
-    const validation = validateSubmission(body, expectedSeed);
+    const validation = validateSubmission(body, expectedSeed, todaysMinMoves());
     if (!validation.ok) {
         sendJson(res, 400, { ok: false, reason: validation.reason });
+        return;
+    }
+
+    // The identity must have been issued by this server.
+    if (!(await verifyGuidToken(guid, body.token))) {
+        sendJson(res, 403, { ok: false, reason: 'unknown identity' });
         return;
     }
 
@@ -154,6 +254,40 @@ async function handleSubmit(req, res) {
         console.error('[server] submit failed:', err);
         sendJson(res, 500, { ok: false, reason: 'server error' });
     }
+}
+
+async function handleRegister(req, res) {
+    const ip = clientIp(req);
+    const windowMs = config.rateLimitWindowSec * 1000;
+
+    const limit = consume(`identity:ip:${ip}`, config.identityLimit, windowMs);
+    if (!limit.allowed) {
+        sendJson(res, 429, { ok: false, reason: 'too many registrations' },
+            { 'Retry-After': String(limit.retryAfterSec) });
+        return;
+    }
+
+    let body;
+    try {
+        body = await readJsonBody(req);
+    } catch (err) {
+        sendJson(res, err.statusCode || 400, { ok: false, reason: err.message });
+        return;
+    }
+
+    const validation = validateRegistration(body);
+    if (!validation.ok) {
+        sendJson(res, 400, { ok: false, reason: validation.reason });
+        return;
+    }
+
+    const identity = await issueIdentity(validation.value.name);
+    sendJson(res, 200, {
+        ok: true,
+        guid: identity.guid,
+        token: identity.token,
+        name: identity.name,
+    });
 }
 
 async function handleLeaderboard(req, res, url) {
@@ -177,7 +311,6 @@ async function handleLeaderboard(req, res, url) {
 
 /** Look up a player's own "first" and "best" entries for today. */
 async function playerSlots(guid) {
-    const { loadDay, sortEntries } = await import('./leaderboard.js');
     const today = dayKey();
     const entries = sortEntries(await loadDay(today));
 
@@ -197,14 +330,10 @@ async function playerSlots(guid) {
 async function handleRequest(req, res) {
     const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
     const pathname = url.pathname;
+    const cors = corsHeaders(req);
 
     if (req.method === 'OPTIONS') {
-        res.writeHead(204, {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, HEAD, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
-            ...SECURITY_HEADERS,
-        });
+        res.writeHead(204, { ...cors, ...SECURITY_HEADERS });
         res.end();
         return;
     }
@@ -220,7 +349,17 @@ async function handleRequest(req, res) {
             date: dayKey(now),
             iso: timestamp(now),
             seed: seedFor(now),
-        });
+            minMoves: todaysMinMoves(),
+        }, cors);
+        return;
+    }
+
+    if (pathname === '/daily-register') {
+        if (req.method !== 'POST') {
+            sendJson(res, 405, { ok: false, reason: 'method not allowed' }, { Allow: 'POST' });
+            return;
+        }
+        await handleRegister(req, res);
         return;
     }
 
@@ -243,7 +382,11 @@ async function handleRequest(req, res) {
     }
 
     if (pathname === '/healthz') {
-        sendJson(res, 200, { ok: true, uptime: Math.round(process.uptime()) });
+        sendJson(res, 200, {
+            ok: true,
+            uptime: Math.round(process.uptime()),
+            storage: storage().kind,
+        }, cors);
         return;
     }
 
@@ -299,11 +442,20 @@ let started = false;
 export function start() {
     if (started || server.listening) return server;
     started = true;
-    server.listen(config.port, config.host, () => {
-        console.log(`VoidFlippr listening on http://${config.host}:${config.port}`);
-        console.log(`  web root:        ${config.webRoot}`);
-        console.log(`  leaderboard dir: ${config.leaderboardDir}`);
+
+    initStorage().then(() => {
+        server.listen(config.port, config.host, () => {
+            console.log(`VoidFlippr listening on http://${config.host}:${config.port}`);
+            console.log(`  web root:        ${config.webRoot}`);
+            console.log(`  data dir:        ${config.dataDir}`);
+            console.log(`  storage:         ${storage().kind}`);
+            console.log(`  min moves/day:   ${todaysMinMoves()}`);
+        });
+    }).catch((err) => {
+        console.error('[server] failed to start:', err.message);
+        process.exit(1);
     });
+
     return server;
 }
 
@@ -314,6 +466,7 @@ if (isMain) start();
 for (const signal of ['SIGINT', 'SIGTERM']) {
     process.on(signal, () => {
         console.log(`\n[server] ${signal} received, shutting down.`);
+        closeStorage();
         server.close(() => process.exit(0));
         setTimeout(() => process.exit(0), 5000).unref();
     });
