@@ -115,7 +115,7 @@ To share one leaderboard between several instances, set the same
 | `IDENTITY_SECRET` | generated | Token signing secret |
 | `ALLOWED_ORIGINS` | empty | Extra origins allowed to call the API |
 | `TRUST_PROXY` | off | Trust `X-Forwarded-For` for client IPs |
-| `MIN_MS_PER_MOVE` | `1200` | Assumed human pace per move |
+| `MIN_MS_PER_MOVE` | `500` | Assumed human pace per move |
 | `RATE_LIMIT_SUBMIT` | `60` | Submissions per IP per window |
 | `RATE_LIMIT_SUBMIT_GUID` | `20` | Submissions per player per window |
 | `RATE_LIMIT_IDENTITY` | `30` | Registrations per IP per window |

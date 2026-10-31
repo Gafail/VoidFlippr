@@ -7,6 +7,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { validateSubmission, GUID_RE, NAME_RE, MIN_TIME_MS, MAX_TIME_MS } from '../server/validate.js';
+import { default as config } from '../server/config.js';
 
 const SEED = 120261025;
 
@@ -15,7 +16,7 @@ const SEED = 120261025;
  * faster than MIN_MS_PER_MOVE.
  */
 const MIN_MOVES = 15;
-const MIN_TIME = MIN_MOVES * 1200;
+const MIN_TIME = MIN_MOVES * config.minMsPerMove;
 
 const valid = {
     guid: 'ABCDEFGH',
@@ -99,7 +100,7 @@ test('accepts the boundary times', () => {
 });
 
 test('rejects a time faster than the moves allow', () => {
-    // 15 moves at 1200ms each cannot be done in 2 seconds.
+    // 15 moves at the configured pace cannot be done in 2 seconds.
     const result = validateSubmission({ ...valid, timeMs: 2000 }, SEED, MIN_MOVES);
     assert.equal(result.ok, false);
     assert.equal(result.reason, 'time below minimum possible');

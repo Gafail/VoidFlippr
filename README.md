@@ -132,7 +132,7 @@ Everything is environment-driven, so no code changes are needed per host.
 | `IDENTITY_SECRET` | generated | Secret used to sign identity tokens |
 | `ALLOWED_ORIGINS` | empty | Extra origins allowed to call the API |
 | `TRUST_PROXY` | off | Trust `X-Forwarded-For` for client IP detection |
-| `MIN_MS_PER_MOVE` | `1200` | Milliseconds per move assumed by the time floor |
+| `MIN_MS_PER_MOVE` | `500` | Milliseconds per move assumed by the time floor |
 | `MIN_TIME_MS` | `1000` | Absolute minimum accepted time |
 | `MAX_TIME_MS` | `1800000` | Absolute maximum accepted time |
 | `RATE_LIMIT_SUBMIT` | `60` | Submissions allowed per IP per window |
@@ -433,6 +433,9 @@ attacker:
    true minimum number of clicks. A submission claiming fewer moves than
    that is impossible and is rejected. A submission whose time is faster than
    `moves x MIN_MS_PER_MOVE` is also rejected - no human clicks that fast.
+   The baseline is 500ms per move, so a 15-move board needs at least 7.5
+   seconds. Raise it to make the leaderboard stricter, lower it to welcome
+   speedrunners.
 
 3. **Rate limits.** Submissions are limited per IP and per player; identity
    registration is limited per IP. A script cannot flood the board.

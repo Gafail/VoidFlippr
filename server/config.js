@@ -89,8 +89,12 @@ export const config = {
      * Reject submitted times that are faster than physically possible.
      * The floor is derived from the true minimum move count for the day's
      * board, times this many milliseconds per move.
+     *
+     * 500ms is the baseline: fast enough for a quick player, slow enough that
+     * a script cannot claim an instant solve. Raise it to make the
+     * leaderboard stricter, lower it to welcome speedrunners.
      */
-    minMsPerMove: intEnv('MIN_MS_PER_MOVE', 1200),
+    minMsPerMove: intEnv('MIN_MS_PER_MOVE', 500),
 
     /**
      * When true, the server refuses any submission faster than the computed
