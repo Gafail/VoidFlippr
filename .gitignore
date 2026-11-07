@@ -11,6 +11,10 @@ leaderboard/
 # Deploy staging tree
 deploy/
 
+# Local deployment target: host details + SSH credentials for the LXC
+.deploy-local/*
+!.deploy-local/host.env.example
+
 # Local environment
 .env
 .env.local
