@@ -20,6 +20,7 @@ const MINIFY = process.argv.includes('--minify') || process.env.NODE_ENV === 'pr
 const CSS_ORDER = [
     'theme.css', 'base.css', 'screens.css', 'board.css', 'modals.css',
     'tutorial.css', 'identity.css', 'leaderboard.css', 'submit.css', 'toast.css',
+    'kofi.css',
 ];
 
 function log(message) {

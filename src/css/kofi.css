@@ -1,0 +1,56 @@
+/* Ko-fi support button.
+ *
+ * The widget injects its own <style> block with !important rules. That
+ * block lands inside the body (after this stylesheet), so on a tie the
+ * widget wins. Every override below therefore uses a more specific
+ * selector than the rule it replaces - .kofi-wrap .kofi-button (0,2,0)
+ * beats a.kofi-button (0,1,1), and .kofi-wrap .btn-container (0,2,0)
+ * beats .btn-container (0,1,0).
+ *
+ * See src/js/kofi.js for the bootstrap.
+ */
+
+.kofi-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 26px 0 0;
+}
+
+/* The widget defaults to a fixed-width inline pill. Let it size to the
+   page content instead. */
+.kofi-wrap .btn-container {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    text-align: center;
+}
+
+.kofi-wrap .kofi-button {
+    display: inline-block !important;
+    width: auto !important;
+    min-width: 0 !important;
+    padding: 13px 26px !important;
+    border-radius: 13px !important;
+    font-family: inherit !important;
+    font-size: 0.98rem !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    box-shadow: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kofi-wrap .kofi-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--shadow-hover);
+}
+
+.kofi-wrap .kofi-button:active {
+    transform: scale(0.98);
+}
+
+/* The widget hard-codes a tall line-height that would push the label out
+   of the button, and a negative letter-spacing the site does not use. */
+.kofi-wrap span.kofitext {
+    line-height: 1.2 !important;
+    letter-spacing: 0 !important;
+}

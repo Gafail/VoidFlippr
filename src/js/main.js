@@ -9,6 +9,7 @@ import { fetchDailyDate } from './daily.js';
 import { ensureIdentity } from './identity.js';
 import { loadLeaderboard } from './leaderboard.js';
 import { showToast } from './toast.js';
+import { loadKofi } from './kofi.js';
 
 // --- expose for inline onclick= handlers ---
 window.showHomeScreen = showHomeScreen;
@@ -34,6 +35,7 @@ window.showToast = showToast;
 loadSavedColors();
 loadSettings();
 wireTutorialClicks();
+loadKofi();
 
 // Top-level await is avoided so the bundle keeps working on the es2020
 // target used by older mobile browsers.

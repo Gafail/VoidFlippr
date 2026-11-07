@@ -227,8 +227,8 @@ VoidFlippr/
 │
 ├── src/                       Frontend source - what you edit
 │   ├── index.html             Thin HTML shell
-│   ├── css/                   10 stylesheets
-│   └── js/                    11 ES modules
+│   ├── css/                   11 stylesheets
+│   └── js/                    12 ES modules
 │
 ├── public/                    Site-root assets, copied into dist/
 │   ├── favicon.ico, favicon-16.png, favicon-32.png
@@ -278,6 +278,7 @@ VoidFlippr/
 | `leaderboard.css` | Home-screen leaderboard + slot badges |
 | `submit.css` | Win-modal submit section + success card |
 | `toast.css` | Bottom-centre toast notification |
+| `kofi.css` | Ko-fi support button, themed to match the site |
 
 ### `src/js/` - ES modules
 
@@ -294,6 +295,7 @@ VoidFlippr/
 | `ui.js` | Screen navigation, theme toggle, settings, submit UI rendering. |
 | `tutorial.js` | Tutorial overlay + interactive 3x3 demo. |
 | `toast.js` | Bottom-centre toast helper. |
+| `kofi.js` | Loads the Ko-fi widget and renders it inline in the page. |
 
 ### `shared/puzzle.js` - used by both sides
 
